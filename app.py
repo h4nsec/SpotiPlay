@@ -1,22 +1,22 @@
+import os
 from flask import Flask, request, redirect, session, render_template
 from spotipy import SpotifyOAuth, Spotify
 import requests
 from bs4 import BeautifulSoup
 
 app = Flask(__name__)
-app.secret_key = 'your_secret_key'
+app.secret_key = os.getenv('SECRET_KEY', 'your_secret_key')  # Use a secret key from environment
 app.config['SESSION_COOKIE_NAME'] = 'spotify-session'
 
 # Spotify API setup
-SPOTIPY_CLIENT_ID = 'your_spotify_client_id'
-SPOTIPY_CLIENT_SECRET = 'your_spotify_client_secret'
-SPOTIPY_REDIRECT_URI = 'https://spotiplay-3n9t.onrender.com/callback'  # Make sure this matches the one in your Spotify app
+SPOTIPY_CLIENT_ID = os.getenv('SPOTIPY_CLIENT_ID')
+SPOTIPY_CLIENT_SECRET = os.getenv('SPOTIPY_CLIENT_SECRET')
+SPOTIPY_REDIRECT_URI = os.getenv('SPOTIPY_REDIRECT_URI')
 
 sp_oauth = SpotifyOAuth(client_id=SPOTIPY_CLIENT_ID,
                         client_secret=SPOTIPY_CLIENT_SECRET,
                         redirect_uri=SPOTIPY_REDIRECT_URI,
                         scope="playlist-modify-public")
-
 @app.route('/')
 def index():
     auth_url = sp_oauth.get_authorize_url()
