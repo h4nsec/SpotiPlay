@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Spotify Setlist Playlist Creator</title>
+</head>
+<body>
+    <h1>Spotify Setlist Playlist Creator</h1>
+    <a href="{{ auth_url }}">Login with Spotify</a>
+
+    <form action="/create_playlist" method="POST">
+        <label for="playlist_name">Playlist Name:</label>
+        <input type="text" id="playlist_name" name="playlist_name" required>
+
+        <label for="setlist_url">Setlist.fm URL:</label>
+        <input type="text" id="setlist_url" name="setlist_url" required>
+
+        <button type="submit">Create Playlist</button>
+    </form>
+</body>
+</html>
