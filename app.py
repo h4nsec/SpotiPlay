@@ -4,10 +4,8 @@ from spotipy import SpotifyOAuth, Spotify
 import requests
 from bs4 import BeautifulSoup
 
-
-
 app = Flask(__name__)
-app.secret_key = os.getenv('SECRET_KEY', 'your_secret_key')  # Use a secret key from environment
+app.secret_key = os.getenv('SECRET_KEY', 'your_secret_key')
 app.config['SESSION_COOKIE_NAME'] = 'spotify-session'
 
 # Spotify API setup
@@ -19,6 +17,7 @@ sp_oauth = SpotifyOAuth(client_id=SPOTIPY_CLIENT_ID,
                         client_secret=SPOTIPY_CLIENT_SECRET,
                         redirect_uri=SPOTIPY_REDIRECT_URI,
                         scope="playlist-modify-public")
+
 @app.route('/')
 def login():
     auth_url = sp_oauth.get_authorize_url()
@@ -45,16 +44,35 @@ def create_playlist():
         setlist_url = request.form['setlist_url']
         
         artist_name, song_titles = get_setlist_songs_and_artist(setlist_url)
-        user_id = sp.current_user()['id']
-        playlist = sp.user_playlist_create(user_id, name=playlist_name, public=True)
-        playlist_id = playlist['id']
-
-        track_uris = search_spotify_tracks(sp, song_titles, artist_name)
-        sp.playlist_add_items(playlist_id, track_uris)
         
-        return f"Playlist '{playlist_name}' created!"
+        # Pass song titles to the selection page
+        return render_template('select_songs.html', song_titles=song_titles, playlist_name=playlist_name, setlist_url=setlist_url)
+    
+    return render_template('create_playlist.html')
+
+@app.route('/finalize_playlist', methods=['POST'])
+def finalize_playlist():
+    token_info = session.get('token_info', None)
+    if not token_info:
+        return redirect('/')
+
+    sp = Spotify(auth=token_info['access_token'])
+    selected_songs = request.form.getlist('selected_songs')
+    playlist_name = request.form['playlist_name']
+    
+    artist_name, _ = get_setlist_songs_and_artist(request.form['setlist_url'])
+    track_uris = search_spotify_tracks(sp, selected_songs, artist_name)
+
+    # Create the Spotify playlist
+    user_id = sp.current_user()['id']
+    playlist = sp.user_playlist_create(user_id, name=playlist_name, public=True)
+    playlist_id = playlist['id']
+
+    if track_uris:
+        sp.playlist_add_items(playlist_id, track_uris)
+        return f"Playlist '{playlist_name}' created with selected songs!"
     else:
-        return render_template('create_playlist.html')
+        return "No tracks were found to add to the playlist."
 
 # Helper functions to scrape Setlist.fm and search songs
 def get_setlist_songs_and_artist(url):
