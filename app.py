@@ -46,8 +46,13 @@ def create_playlist():
         
         artist_name, song_titles = get_setlist_songs_and_artist(setlist_url)
         
-        # Pass song titles to the selection page
-        return render_template('select_songs.html', song_titles=song_titles, playlist_name=playlist_name, setlist_url=setlist_url)
+        # Perform Spotify search for all songs
+        search_results = {}
+        for song in song_titles:
+            search_results[song] = sp.search(q=f"{song} artist:{artist_name}", type='track', limit=5)['tracks']['items']
+
+        # Pass the search results to the song selection template
+        return render_template('select_songs.html', search_results=search_results, playlist_name=playlist_name, setlist_url=setlist_url)
     
     return render_template('create_playlist.html')
 
@@ -58,22 +63,22 @@ def finalize_playlist():
         return redirect('/')
 
     sp = Spotify(auth=token_info['access_token'])
-    selected_songs = request.form.getlist('selected_songs')
     playlist_name = request.form['playlist_name']
     
-    artist_name, _ = get_setlist_songs_and_artist(request.form['setlist_url'])
-    track_uris = search_spotify_tracks(sp, selected_songs, artist_name)
+    # Retrieve selected track URIs
+    selected_track_uris = request.form.getlist('selected_tracks')
 
-    # Create the Spotify playlist
+    # Create Spotify playlist
     user_id = sp.current_user()['id']
     playlist = sp.user_playlist_create(user_id, name=playlist_name, public=True)
     playlist_id = playlist['id']
 
-    if track_uris:
-        sp.playlist_add_items(playlist_id, track_uris)
+    # Add selected tracks to the playlist
+    if selected_track_uris:
+        sp.playlist_add_items(playlist_id, selected_track_uris)
         return f"Playlist '{playlist_name}' created with selected songs!"
     else:
-        return "No tracks were found to add to the playlist."
+        return "No tracks were selected to add to the playlist."
 
 # Helper function to clean song titles by removing "Play Video" and parentheses
 def clean_song_title(title):
