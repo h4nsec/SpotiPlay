@@ -10,7 +10,7 @@ app.config['SESSION_COOKIE_NAME'] = 'spotify-session'
 # Spotify API setup
 SPOTIPY_CLIENT_ID = 'your_spotify_client_id'
 SPOTIPY_CLIENT_SECRET = 'your_spotify_client_secret'
-SPOTIPY_REDIRECT_URI = 'http://localhost:5000/callback'  # Make sure this matches the one in your Spotify app
+SPOTIPY_REDIRECT_URI = 'httphttps://spotiplay-3n9t.onrender.com/callback'  # Make sure this matches the one in your Spotify app
 
 sp_oauth = SpotifyOAuth(client_id=SPOTIPY_CLIENT_ID,
                         client_secret=SPOTIPY_CLIENT_SECRET,
