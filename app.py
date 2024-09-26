@@ -21,8 +21,15 @@ sp_oauth = SpotifyOAuth(client_id=SPOTIPY_CLIENT_ID,
                         scope="playlist-modify-public")
 @app.route('/')
 def index():
-    auth_url = sp_oauth.get_authorize_url()
-    return render_template('index.html', auth_url=auth_url)
+    token_info = session.get('token_info', None)
+    if not token_info:
+        auth_url = sp_oauth.get_authorize_url()
+        return render_template('index.html', auth_url=auth_url)
+    
+    sp = Spotify(auth=token_info['access_token'])
+    user_profile = sp.current_user()
+    return render_template('index.html', user=user_profile)  # Return user info to the homepage
+
 
 @app.route('/login')
 def login():
@@ -35,7 +42,8 @@ def callback():
     code = request.args.get('code')
     token_info = sp_oauth.get_access_token(code)
     session['token_info'] = token_info
-    return redirect('/dashboard')
+    return redirect('/')  # Redirect back to the index page after authentication
+
 
 @app.route('/dashboard')
 def dashboard():
