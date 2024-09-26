@@ -3,6 +3,9 @@ from flask import Flask, request, redirect, session, render_template
 from spotipy import SpotifyOAuth, Spotify
 import requests
 from bs4 import BeautifulSoup
+from dotenv import load_dotenv
+load_dotenv()
+
 
 app = Flask(__name__)
 app.secret_key = os.getenv('SECRET_KEY', 'your_secret_key')  # Use a secret key from environment
