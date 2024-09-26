@@ -61,7 +61,7 @@ def create_playlist():
             print(f"Error during playlist creation: {e}")
             return f"An error occurred: {e}", 500
 
-    # Handle the GET method by rendering the form
+    # Handle the GET request by rendering the form to create a playlist
     return render_template('create_playlist.html')
 
 
