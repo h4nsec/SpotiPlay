@@ -75,19 +75,21 @@ def finalize_playlist():
     else:
         return "No tracks were found to add to the playlist."
 
-# Helper functions to scrape Setlist.fm and search songs
+# Helper function to clean song titles by removing "Play Video" and parentheses
+def clean_song_title(title):
+    title = re.sub(r'\([^)]*\)', '', title)  # Remove anything in parentheses
+    return ' '.join(title.replace('Play Video', '').split()).strip()
+
+# Helper function to scrape Setlist.fm and clean song titles
 def get_setlist_songs_and_artist(url):
     response = requests.get(url)
     soup = BeautifulSoup(response.content, 'html.parser')
-    artist_name = soup.find('meta', {'name': 'description'}).get('content').split(' Setlist')[0].strip()
-    
-    # Clean song titles by removing "Play Video" and any extra whitespace
-    song_titles = [re.sub(r'Play Video', '', song.get_text()).strip() for song in soup.find_all('li', class_='setlistParts song')]
-    
-    print(f"Extracted Songs: {song_titles}")  # Debugging song titles
+    artist_name = soup.find('meta', {'name': 'description'}).get('content').split(' Setlist')[0].replace('Get the ', '').strip()
+    raw_song_titles = [song.get_text() for song in soup.find_all('li', class_='setlistParts song')]
+    song_titles = [clean_song_title(song) for song in raw_song_titles]
     return artist_name, song_titles
 
-
+# Function to search for songs on Spotify and return track URIs
 def search_spotify_tracks(sp, song_titles, artist_name):
     track_uris = []
     for song in song_titles:
@@ -99,7 +101,6 @@ def search_spotify_tracks(sp, song_titles, artist_name):
         else:
             print(f"No match found for {song} by {artist_name}")
     return track_uris
-
 
 if __name__ == '__main__':
     app.run(debug=True)
