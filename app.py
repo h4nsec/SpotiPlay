@@ -20,21 +20,9 @@ sp_oauth = SpotifyOAuth(client_id=SPOTIPY_CLIENT_ID,
                         redirect_uri=SPOTIPY_REDIRECT_URI,
                         scope="playlist-modify-public")
 @app.route('/')
-def index():
-    token_info = session.get('token_info', None)
-    if not token_info:
-        auth_url = sp_oauth.get_authorize_url()
-        return render_template('index.html', auth_url=auth_url)
-    
-    sp = Spotify(auth=token_info['access_token'])
-    user_profile = sp.current_user()
-    return render_template('index.html', user=user_profile)  # Return user info to the homepage
-
-
-@app.route('/login')
 def login():
     auth_url = sp_oauth.get_authorize_url()
-    return redirect(auth_url)
+    return render_template('login.html', auth_url=auth_url)
 
 @app.route('/callback')
 def callback():
@@ -42,44 +30,31 @@ def callback():
     code = request.args.get('code')
     token_info = sp_oauth.get_access_token(code)
     session['token_info'] = token_info
-    return redirect('/')  # Redirect back to the index page after authentication
+    return redirect('/create_playlist')
 
-
-@app.route('/dashboard')
-def dashboard():
-    token_info = session.get('token_info', None)
-    if not token_info:
-        return redirect('/')
-    
-    sp = Spotify(auth=token_info['access_token'])
-    user_profile = sp.current_user()
-    
-    return render_template('dashboard.html', user=user_profile)
-
-# Endpoint to create a new playlist
-@app.route('/create_playlist', methods=['POST'])
+@app.route('/create_playlist', methods=['GET', 'POST'])
 def create_playlist():
     token_info = session.get('token_info', None)
     if not token_info:
-        return redirect('/login')
+        return redirect('/')
 
     sp = Spotify(auth=token_info['access_token'])
-    playlist_name = request.form['playlist_name']
-    setlist_url = request.form['setlist_url']
-    
-    # Process the Setlist.fm URL to get songs
-    artist_name, song_titles = get_setlist_songs_and_artist(setlist_url)
-    
-    # Create Spotify playlist
-    user_id = sp.current_user()['id']
-    playlist = sp.user_playlist_create(user_id, name=playlist_name, public=True)
-    playlist_id = playlist['id']
 
-    # Add tracks to the playlist
-    track_uris = search_spotify_tracks(sp, song_titles, artist_name)
-    sp.playlist_add_items(playlist_id, track_uris)
-    
-    return f"Playlist '{playlist_name}' created!"
+    if request.method == 'POST':
+        playlist_name = request.form['playlist_name']
+        setlist_url = request.form['setlist_url']
+        
+        artist_name, song_titles = get_setlist_songs_and_artist(setlist_url)
+        user_id = sp.current_user()['id']
+        playlist = sp.user_playlist_create(user_id, name=playlist_name, public=True)
+        playlist_id = playlist['id']
+
+        track_uris = search_spotify_tracks(sp, song_titles, artist_name)
+        sp.playlist_add_items(playlist_id, track_uris)
+        
+        return f"Playlist '{playlist_name}' created!"
+    else:
+        return render_template('create_playlist.html')
 
 # Helper functions to scrape Setlist.fm and search songs
 def get_setlist_songs_and_artist(url):
