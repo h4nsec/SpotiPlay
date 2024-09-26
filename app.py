@@ -64,9 +64,12 @@ def finalize_playlist():
 
     sp = Spotify(auth=token_info['access_token'])
     playlist_name = request.form['playlist_name']
-    
-    # Retrieve selected track URIs
-    selected_track_uris = request.form.getlist('selected_tracks')
+
+    # Collect all selected track URIs
+    selected_track_uris = []
+    for song in request.form:
+        if song.startswith('selected_track_'):
+            selected_track_uris.append(request.form[song])
 
     # Create Spotify playlist
     user_id = sp.current_user()['id']
@@ -79,11 +82,6 @@ def finalize_playlist():
         return f"Playlist '{playlist_name}' created with selected songs!"
     else:
         return "No tracks were selected to add to the playlist."
-
-# Helper function to clean song titles by removing "Play Video" and parentheses
-def clean_song_title(title):
-    title = re.sub(r'\([^)]*\)', '', title)  # Remove anything in parentheses
-    return ' '.join(title.replace('Play Video', '').split()).strip()
 
 # Helper function to scrape Setlist.fm and clean song titles
 def get_setlist_songs_and_artist(url):
