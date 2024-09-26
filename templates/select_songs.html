@@ -9,12 +9,19 @@
     <h1>Select Songs to Add to Your Playlist</h1>
     <form action="/finalize_playlist" method="POST">
         <input type="hidden" name="playlist_name" value="{{ playlist_name }}">
-        <input type="hidden" name="setlist_url" value="{{ setlist_url }}">
-
-        {% for song in song_titles %}
-            <input type="checkbox" name="selected_songs" value="{{ song }}">{{ song }}<br>
+        
+        {% for song, tracks in search_results.items() %}
+            <h3>{{ song }}</h3>
+            {% if tracks %}
+                {% for track in tracks %}
+                    <input type="radio" name="selected_tracks" value="{{ track.uri }}">
+                    "{{ track.name }}" by {{ track.artists[0].name }} <br>
+                {% endfor %}
+            {% else %}
+                <p>No results found for {{ song }}</p>
+            {% endif %}
         {% endfor %}
-
+        
         <button type="submit">Create Playlist</button>
     </form>
 </body>
