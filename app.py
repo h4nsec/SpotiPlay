@@ -3,6 +3,7 @@ from flask import Flask, request, redirect, session, render_template
 from spotipy import SpotifyOAuth, Spotify
 import requests
 from bs4 import BeautifulSoup
+import re
 
 app = Flask(__name__)
 app.secret_key = os.getenv('SECRET_KEY', 'your_secret_key')
@@ -79,17 +80,26 @@ def get_setlist_songs_and_artist(url):
     response = requests.get(url)
     soup = BeautifulSoup(response.content, 'html.parser')
     artist_name = soup.find('meta', {'name': 'description'}).get('content').split(' Setlist')[0].strip()
-    song_titles = [song.get_text().strip() for song in soup.find_all('li', class_='setlistParts song')]
+    
+    # Clean song titles by removing "Play Video" and any extra whitespace
+    song_titles = [re.sub(r'Play Video', '', song.get_text()).strip() for song in soup.find_all('li', class_='setlistParts song')]
+    
+    print(f"Extracted Songs: {song_titles}")  # Debugging song titles
     return artist_name, song_titles
+
 
 def search_spotify_tracks(sp, song_titles, artist_name):
     track_uris = []
     for song in song_titles:
         query = f"{song} artist:{artist_name}"
-        results = sp.search(q=query, type='track', limit=1)
+        print(f"Searching for: {query}")  # Debugging search query
+        results = sp.search(q=query, type='track', limit=5)  # Searching for up to 5 matches
         if results['tracks']['items']:
             track_uris.append(results['tracks']['items'][0]['uri'])
+        else:
+            print(f"No match found for {song} by {artist_name}")
     return track_uris
+
 
 if __name__ == '__main__':
     app.run(debug=True)
