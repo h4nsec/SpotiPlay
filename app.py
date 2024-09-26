@@ -13,7 +13,7 @@ app.config['SESSION_COOKIE_NAME'] = 'spotify-session'
 # Spotify API setup
 SPOTIPY_CLIENT_ID = os.environ.get('SPOTIPY_CLIENT_ID')
 SPOTIPY_CLIENT_SECRET = os.environ.get('SPOTIPY_CLIENT_SECRET')
-SPOTIPY_REDIRECT_URI = os.environ.get('SPOTIPY_REDIRECT_URI')
+SPOTIPY_REDIRECT_URI = os.environ.get('https://spotiplay-3n9t.onrender.com/callback')
 
 sp_oauth = SpotifyOAuth(client_id=SPOTIPY_CLIENT_ID,
                         client_secret=SPOTIPY_CLIENT_SECRET,
