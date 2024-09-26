@@ -34,27 +34,35 @@ def callback():
 
 @app.route('/create_playlist', methods=['GET', 'POST'])
 def create_playlist():
-    token_info = session.get('token_info', None)
-    if not token_info:
-        return redirect('/')
+    try:
+        token_info = session.get('token_info', None)
+        if not token_info:
+            return redirect('/')
 
-    sp = Spotify(auth=token_info['access_token'])
+        sp = Spotify(auth=token_info['access_token'])
 
-    if request.method == 'POST':
-        playlist_name = request.form['playlist_name']
-        setlist_url = request.form['setlist_url']
-        
-        artist_name, song_titles = get_setlist_songs_and_artist(setlist_url)
-        
-        # Perform Spotify search for all songs
-        search_results = {}
-        for song in song_titles:
-            search_results[song] = sp.search(q=f"{song} artist:{artist_name}", type='track', limit=5)['tracks']['items']
+        if request.method == 'POST':
+            playlist_name = request.form['playlist_name']
+            setlist_url = request.form['setlist_url']
 
-        # Pass the search results to the song selection template
-        return render_template('select_songs.html', search_results=search_results, playlist_name=playlist_name, setlist_url=setlist_url)
-    
-    return render_template('create_playlist.html')
+            artist_name, song_titles = get_setlist_songs_and_artist(setlist_url)
+
+            if not song_titles:
+                print(f"No songs found in setlist for {artist_name}")
+                return "No songs found"
+
+            # Search for Spotify tracks
+            search_results = {}
+            for song in song_titles:
+                search_results[song] = sp.search(q=f"{song} artist:{artist_name}", type='track', limit=5)['tracks']['items']
+
+            # Pass the search results to the song selection template
+            return render_template('select_songs.html', search_results=search_results, playlist_name=playlist_name, setlist_url=setlist_url)
+
+    except Exception as e:
+        print(f"Error during playlist creation: {e}")
+        return f"An error occurred: {e}", 500
+
 
 @app.route('/finalize_playlist', methods=['POST'])
 def finalize_playlist():
