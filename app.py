@@ -3,8 +3,7 @@ from flask import Flask, request, redirect, session, render_template
 from spotipy import SpotifyOAuth, Spotify
 import requests
 from bs4 import BeautifulSoup
-from dotenv import load_dotenv
-load_dotenv()
+
 
 
 app = Flask(__name__)
