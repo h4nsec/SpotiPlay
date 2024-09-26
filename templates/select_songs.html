@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Select Songs</title>
+</head>
+<body>
+    <h1>Select Songs to Add to Your Playlist</h1>
+    <form action="/finalize_playlist" method="POST">
+        <input type="hidden" name="playlist_name" value="{{ playlist_name }}">
+        <input type="hidden" name="setlist_url" value="{{ setlist_url }}">
+
+        {% for song in song_titles %}
+            <input type="checkbox" name="selected_songs" value="{{ song }}">{{ song }}<br>
+        {% endfor %}
+
+        <button type="submit">Create Playlist</button>
+    </form>
+</body>
+</html>
