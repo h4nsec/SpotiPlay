@@ -65,6 +65,13 @@ def create_playlist():
     return render_template('create_playlist.html')
 
 
+# Function to clean song titles by removing extra spaces, unwanted text, and anything in parentheses
+def clean_song_title(title):
+    # Remove anything within parentheses and parentheses themselves
+    title = re.sub(r'\([^)]*\)', '', title)
+    # Remove "Play Video" and extra spaces
+    return ' '.join(title.replace('Play Video', '').split()).strip()
+
 
 @app.route('/finalize_playlist', methods=['POST'])
 def finalize_playlist():
