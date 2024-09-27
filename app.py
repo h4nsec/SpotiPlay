@@ -106,6 +106,21 @@ def finalize_playlist():
         return "No tracks were selected to add to the playlist."
 
 
+@app.route('/update_playlist', methods=['POST'])
+def update_playlist():
+    token_info = session.get('token_info', None)
+    if not token_info:
+        return redirect('/login')
+
+    sp = Spotify(auth=token_info['access_token'])
+    playlist_id = request.form['playlist_id']
+    selected_track_uris = request.form.getlist('selected_tracks')
+
+    if selected_track_uris:
+        sp.playlist_add_items(playlist_id, selected_track_uris)
+        return f"Playlist updated with selected songs!"
+    else:
+        return "No tracks selected for update."
 
 
 
