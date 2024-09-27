@@ -116,14 +116,14 @@ def update_playlist():
     playlist_id = request.form['playlist_id']
     setlist_url = request.form['setlist_url']
 
+    print(f"Updating Playlist ID: {playlist_id}, Setlist URL: {setlist_url}")  # Debugging
+
     try:
-        # Extract artist and songs from the Setlist.fm URL
         artist_name, song_titles = get_setlist_songs_and_artist(setlist_url)
 
         if not song_titles:
             return "No songs found in the setlist.", 400
 
-        # Search for Spotify tracks and display them for user selection
         search_results = {}
         for song in song_titles:
             search_results[song] = sp.search(q=f"{song} artist:{artist_name}", type='track', limit=5)['tracks']['items']
@@ -133,6 +133,7 @@ def update_playlist():
     except Exception as e:
         print(f"Error during playlist update: {e}")
         return f"An error occurred: {e}", 500
+
 
 
 
