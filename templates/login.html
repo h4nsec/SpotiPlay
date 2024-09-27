@@ -7,7 +7,12 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
 </head>
 <body>
-    <h1>Login with Spotify</h1>
-    <a href="{{ auth_url }}">Login with Spotify</a>
+    <div class="container">
+        <h1>Login to Spotify</h1>
+        <p>Click the button below to authenticate with Spotify and begin creating or updating playlists.</p>
+        <form action="{{ auth_url }}">
+            <button type="submit">Login with Spotify</button>
+        </form>
+    </div>
 </body>
 </html>
