@@ -104,9 +104,13 @@ def index():
         return redirect('/login')
 
     sp = Spotify(auth=token_info['access_token'])
-    playlists = sp.current_user_playlists()['items']  # Fetch user's playlists
-    
-    return render_template('index.html', playlists=playlists)  # Pass playlists to template
+    playlists = sp.current_user_playlists(limit=10)['items']  # Fetch user's playlists
+
+    # Debugging: Print the playlist data
+    print(playlists)
+
+    return render_template('index.html', playlists=playlists)
+
 
 # Helper function to scrape Setlist.fm and clean song titles
 def get_setlist_songs_and_artist(url):
@@ -129,6 +133,15 @@ def search_spotify_tracks(sp, song_titles, artist_name):
         else:
             print(f"No match found for {song} by {artist_name}")
     return track_uris
+
+@app.before_request
+def refresh_token():
+    token_info = session.get('token_info', None)
+    if token_info:
+        if sp_oauth.is_token_expired(token_info):
+            token_info = sp_oauth.refresh_access_token(token_info['refresh_token'])
+            session['token_info'] = token_info
+
 
 if __name__ == '__main__':
     app.run(debug=True)
