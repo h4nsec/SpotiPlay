@@ -88,21 +88,24 @@ def finalize_playlist():
         return redirect('/')
 
     sp = Spotify(auth=token_info['access_token'])
-    
-    # Check if this is an update to an existing playlist or a new playlist
+
+    # Check if it's an update or a new playlist
     is_update = request.form.get('is_update')
-    
+
     if is_update == 'true':
-        # Use the selected existing playlist
+        # Update existing playlist
         playlist_id = request.form['playlist_id']
     else:
-        # Create a new playlist
-        playlist_name = request.form['playlist_name']
+        # Create new playlist
+        playlist_name = request.form.get('playlist_name')
+        if not playlist_name:
+            return "Playlist name is required for new playlists", 400
+
         user_id = sp.current_user()['id']
         playlist = sp.user_playlist_create(user_id, name=playlist_name, public=True)
         playlist_id = playlist['id']
 
-    # Collect selected track URIs
+    # Get selected tracks
     selected_track_uris = request.form.getlist('selected_tracks')
     
     if selected_track_uris:
@@ -113,6 +116,7 @@ def finalize_playlist():
             return f"Playlist '{playlist_name}' created with selected songs!"
     else:
         return "No tracks were selected to add to the playlist."
+
 
 
 @app.route('/update_playlist', methods=['POST'])
