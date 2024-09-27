@@ -8,21 +8,28 @@
 <body>
     <h1>Select Songs to Add to Your Playlist</h1>
     <form action="/finalize_playlist" method="POST">
-        <input type="hidden" name="playlist_name" value="{{ playlist_name }}">
-        
-        {% for song, tracks in search_results.items() %}
-            <h3>{{ song }}</h3>
-            {% if tracks %}
-                {% for track in tracks %}
-                    <input type="checkbox" name="selected_tracks" value="{{ track.uri }}">
-                    "{{ track.name }}" by {{ track.artists[0].name }} <br>
-                {% endfor %}
-            {% else %}
-                <p>No results found for {{ song }}</p>
-            {% endif %}
+    <!-- Hidden field for whether this is an update or new playlist -->
+    <input type="hidden" name="is_update" value="{{ is_update }}">
+
+    <!-- If updating a playlist, pass the playlist_id -->
+    {% if is_update == 'true' %}
+        <input type="hidden" name="playlist_id" value="{{ playlist_id }}">
+    {% else %}
+        <!-- Playlist name input for creating a new playlist -->
+        <label for="playlist_name">Playlist Name:</label>
+        <input type="text" id="playlist_name" name="playlist_name" required>
+    {% endif %}
+
+    <!-- List of tracks for the user to select -->
+    {% for song, tracks in search_results.items() %}
+        <h3>{{ song }}</h3>
+        {% for track in tracks %}
+            <input type="checkbox" name="selected_tracks" value="{{ track['uri'] }}">
+            {{ track['name'] }} by {{ track['artists'][0]['name'] }}<br>
         {% endfor %}
-        
-        <button type="submit">Create Playlist</button>
-    </form>
+    {% endfor %}
+
+    <button type="submit">Finalize Playlist</button>
+</form>
 </body>
 </html>
