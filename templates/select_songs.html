@@ -8,19 +8,19 @@
 <body>
     <h1>Select Songs to Add to Your Playlist</h1>
    <form action="/finalize_playlist" method="POST">
-    <!-- Hidden field for determining if it is an update -->
+    <!-- Hidden field for is_update -->
     <input type="hidden" name="is_update" value="{{ is_update }}">
 
     {% if is_update == 'true' %}
-        <!-- Pass the playlist ID when updating an existing playlist -->
+        <!-- Hidden field to preserve playlist ID when updating -->
         <input type="hidden" name="playlist_id" value="{{ playlist_id }}">
     {% else %}
-        <!-- Playlist name input for creating a new playlist -->
+        <!-- Field for new playlist creation -->
         <label for="playlist_name">Playlist Name:</label>
         <input type="text" id="playlist_name" name="playlist_name" required>
     {% endif %}
 
-    <!-- Display the search results for the user to select songs -->
+    <!-- List of search results with checkboxes -->
     {% for song, tracks in search_results.items() %}
         <h3>{{ song }}</h3>
         {% for track in tracks %}
@@ -31,6 +31,7 @@
 
     <button type="submit">Finalize Playlist</button>
 </form>
+
 
 </form>
 </body>
