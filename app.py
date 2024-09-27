@@ -89,11 +89,11 @@ def finalize_playlist():
 
     sp = Spotify(auth=token_info['access_token'])
     
-    # Determine if this is for creating a new playlist or updating an existing one
+    # Check if this is an update to an existing playlist or a new playlist
     is_update = request.form.get('is_update')
     
     if is_update == 'true':
-        # Update an existing playlist
+        # Use the selected existing playlist
         playlist_id = request.form['playlist_id']
     else:
         # Create a new playlist
