@@ -17,7 +17,7 @@ SPOTIPY_REDIRECT_URI = "https://spotiplay-3n9t.onrender.com/callback"
 sp_oauth = SpotifyOAuth(client_id=SPOTIPY_CLIENT_ID,
                         client_secret=SPOTIPY_CLIENT_SECRET,
                         redirect_uri=SPOTIPY_REDIRECT_URI,
-                        scope="playlist-modify-public")
+                        scope="playlist-read-private playlist-modify-public")
 
 @app.route('/')
 def login():
