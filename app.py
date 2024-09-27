@@ -97,19 +97,18 @@ def finalize_playlist():
     else:
         return "No tracks were selected to add to the playlist."
 
-@app.route('/')
-def index():
+@app.route('/create_playlist')
+def create_playlist_view():
     token_info = session.get('token_info', None)
     if not token_info:
         return redirect('/login')
 
     sp = Spotify(auth=token_info['access_token'])
     playlists = sp.current_user_playlists(limit=10)['items']  # Fetch user's playlists
+    
+    # Pass playlists to the template
+    return render_template('create_playlist.html', playlists=playlists)
 
-    # Debugging: Print the playlist data
-    print(playlists)
-
-    return render_template('index.html', playlists=playlists)
 
 
 # Helper function to scrape Setlist.fm and clean song titles
