@@ -3,18 +3,37 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Create Playlist</title>
+    <title>Create or Update Playlist</title>
 </head>
 <body>
-    <h1>Create a Playlist</h1>
+    <h1>Create or Update a Playlist</h1>
+
+    <!-- Option to create a new playlist -->
+    <h2>Create a New Playlist</h2>
     <form action="/create_playlist" method="POST">
-        <label for="playlist_name">Playlist Name:</label>
+        <label for="playlist_name">New Playlist Name:</label>
         <input type="text" id="playlist_name" name="playlist_name" required>
 
         <label for="setlist_url">Setlist.fm URL:</label>
         <input type="text" id="setlist_url" name="setlist_url" required>
 
-        <button type="submit">Submit</button>
+        <button type="submit">Create Playlist</button>
+    </form>
+
+    <!-- Option to update an existing playlist -->
+    <h2>Update an Existing Playlist</h2>
+    <form action="/update_playlist" method="POST">
+        <label for="playlist_id">Select Existing Playlist:</label>
+        <select id="playlist_id" name="playlist_id" required>
+            {% for playlist in playlists %}
+                <option value="{{ playlist['id'] }}">{{ playlist['name'] }}</option>
+            {% endfor %}
+        </select>
+
+        <label for="setlist_url_update">Setlist.fm URL:</label>
+        <input type="text" id="setlist_url_update" name="setlist_url_update" required>
+
+        <button type="submit">Update Playlist</button>
     </form>
 </body>
 </html>
