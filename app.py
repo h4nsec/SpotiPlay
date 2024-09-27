@@ -106,8 +106,12 @@ def create_playlist_view():
     sp = Spotify(auth=token_info['access_token'])
     playlists = sp.current_user_playlists(limit=10)['items']  # Fetch user's playlists
     
+    # Print playlists to debug
+    print(playlists)  # Add this line to verify playlists are being fetched
+
     # Pass playlists to the template
     return render_template('create_playlist.html', playlists=playlists)
+
 
 
 
