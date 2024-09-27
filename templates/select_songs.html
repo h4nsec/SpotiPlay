@@ -7,27 +7,29 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
 </head>
 <body>
-    <h1>Select Songs to Add</h1>
-    <form action="/finalize_playlist" method="POST">
-        <!-- For a new playlist, show the input field for playlist name -->
-        {% if playlist_name %}
-            <label for="playlist_name">Playlist Name:</label>
-            <input type="text" id="playlist_name" name="playlist_name" value="{{ playlist_name }}" required>
-        {% else %}
-            <!-- For updating an existing playlist, use the hidden input field -->
-            <input type="hidden" name="playlist_id" value="{{ playlist_id }}">
-        {% endif %}
+    <div class="container">
+        <h1>Select Songs to Add</h1>
+        <form action="/finalize_playlist" method="POST">
+            {% if playlist_name %}
+                <input type="hidden" name="playlist_name" value="{{ playlist_name }}">
+            {% endif %}
+            {% if playlist_id %}
+                <input type="hidden" name="playlist_id" value="{{ playlist_id }}">
+            {% endif %}
 
-        <h2>Select Tracks</h2>
-        {% for song, tracks in search_results.items() %}
-            <h3>{{ song }}</h3>
-            {% for track in tracks %}
-                <input type="checkbox" name="selected_tracks" value="{{ track.uri }}">
-                {{ track.name }} by {{ track.artists[0].name }}<br>
+            <h2>Select Tracks</h2>
+            {% for song, tracks in search_results.items() %}
+                <h3>{{ song }}</h3>
+                {% for track in tracks %}
+                    <div class="checkbox-group">
+                        <input type="checkbox" name="selected_tracks" value="{{ track.uri }}">
+                        {{ track.name }} by {{ track.artists[0].name }}
+                    </div>
+                {% endfor %}
             {% endfor %}
-        {% endfor %}
 
-        <button type="submit">Add Selected Songs</button>
-    </form>
+            <button type="submit">Add Selected Songs</button>
+        </form>
+    </div>
 </body>
 </html>
