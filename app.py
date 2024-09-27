@@ -114,13 +114,26 @@ def update_playlist():
 
     sp = Spotify(auth=token_info['access_token'])
     playlist_id = request.form['playlist_id']
-    selected_track_uris = request.form.getlist('selected_tracks')
+    setlist_url = request.form['setlist_url']
 
-    if selected_track_uris:
-        sp.playlist_add_items(playlist_id, selected_track_uris)
-        return f"Playlist updated with selected songs!"
-    else:
-        return "No tracks selected for update."
+    try:
+        # Extract artist and songs from the Setlist.fm URL
+        artist_name, song_titles = get_setlist_songs_and_artist(setlist_url)
+
+        if not song_titles:
+            return "No songs found in the setlist.", 400
+
+        # Search for Spotify tracks and display them for user selection
+        search_results = {}
+        for song in song_titles:
+            search_results[song] = sp.search(q=f"{song} artist:{artist_name}", type='track', limit=5)['tracks']['items']
+
+        return render_template('select_songs.html', search_results=search_results, playlist_id=playlist_id)
+
+    except Exception as e:
+        print(f"Error during playlist update: {e}")
+        return f"An error occurred: {e}", 500
+
 
 
 
