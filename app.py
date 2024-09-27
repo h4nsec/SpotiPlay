@@ -33,10 +33,10 @@ def callback():
     return redirect('/create_playlist')
 
 @app.route('/create_playlist', methods=['GET', 'POST'])
-def create_playlist():
+def create_playlist_view():
     token_info = session.get('token_info', None)
     if not token_info:
-        return redirect('/')
+        return redirect('/login')
 
     sp = Spotify(auth=token_info['access_token'])
 
@@ -61,8 +61,16 @@ def create_playlist():
             print(f"Error during playlist creation: {e}")
             return f"An error occurred: {e}", 500
 
-    # Handle the GET request by rendering the form to create a playlist
-    return render_template('create_playlist.html')
+    # Handle the GET request by rendering the form and fetching playlists
+    try:
+        playlists = sp.current_user_playlists(limit=10)['items']  # Fetch user's playlists
+        print(playlists)  # Check if this prints playlists
+    except Exception as e:
+        print(f"Error fetching playlists: {e}")
+        playlists = []
+    
+    return render_template('create_playlist.html', playlists=playlists)
+
 
 
 # Function to clean song titles by removing extra spaces, unwanted text, and anything in parentheses
@@ -97,20 +105,6 @@ def finalize_playlist():
     else:
         return "No tracks were selected to add to the playlist."
 
-@app.route('/create_playlist')
-def create_playlist_view():
-    token_info = session.get('token_info', None)
-    if not token_info:
-        return redirect('/login')
-
-    sp = Spotify(auth=token_info['access_token'])
-    playlists = sp.current_user_playlists(limit=10)['items']  # Fetch user's playlists
-    
-    # Print playlists to debug
-    print(playlists)  # Add this line to verify playlists are being fetched
-
-    # Pass playlists to the template
-    return render_template('create_playlist.html', playlists=playlists)
 
 
 
