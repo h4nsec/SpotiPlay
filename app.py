@@ -83,10 +83,7 @@ def finalize_playlist():
     playlist_name = request.form['playlist_name']
 
     # Collect all selected track URIs
-    selected_track_uris = []
-    for key, value in request.form.items():
-        if key.startswith('selected_tracks_'):
-            selected_track_uris.append(value)
+    selected_track_uris = request.form.getlist('selected_tracks')  # getlist() to handle multiple selected tracks
 
     # Create Spotify playlist
     user_id = sp.current_user()['id']
@@ -99,6 +96,7 @@ def finalize_playlist():
         return f"Playlist '{playlist_name}' created with selected songs!"
     else:
         return "No tracks were selected to add to the playlist."
+
 
 
 # Helper function to scrape Setlist.fm and clean song titles
