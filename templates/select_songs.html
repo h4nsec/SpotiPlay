@@ -6,33 +6,27 @@
     <title>Select Songs</title>
 </head>
 <body>
-    <h1>Select Songs to Add to Your Playlist</h1>
-   <form action="/finalize_playlist" method="POST">
-    <!-- Hidden field for is_update -->
-    <input type="hidden" name="is_update" value="{{ is_update }}">
+    <h1>Select Songs to Add</h1>
+    <form action="/finalize_playlist" method="POST">
+        <!-- For a new playlist, show the input field for playlist name -->
+        {% if playlist_name %}
+            <label for="playlist_name">Playlist Name:</label>
+            <input type="text" id="playlist_name" name="playlist_name" value="{{ playlist_name }}" required>
+        {% else %}
+            <!-- For updating an existing playlist, use the hidden input field -->
+            <input type="hidden" name="playlist_id" value="{{ playlist_id }}">
+        {% endif %}
 
-    {% if is_update == 'true' %}
-        <!-- Hidden field to preserve playlist ID when updating -->
-        <input type="hidden" name="playlist_id" value="{{ playlist_id }}">
-    {% else %}
-        <!-- Field for new playlist creation -->
-        <label for="playlist_name">Playlist Name:</label>
-        <input type="text" id="playlist_name" name="playlist_name" required>
-    {% endif %}
-
-    <!-- List of search results with checkboxes -->
-    {% for song, tracks in search_results.items() %}
-        <h3>{{ song }}</h3>
-        {% for track in tracks %}
-            <input type="checkbox" name="selected_tracks" value="{{ track['uri'] }}">
-            {{ track['name'] }} by {{ track['artists'][0]['name'] }}<br>
+        <h2>Select Tracks</h2>
+        {% for song, tracks in search_results.items() %}
+            <h3>{{ song }}</h3>
+            {% for track in tracks %}
+                <input type="checkbox" name="selected_tracks" value="{{ track.uri }}">
+                {{ track.name }} by {{ track.artists[0].name }}<br>
+            {% endfor %}
         {% endfor %}
-    {% endfor %}
 
-    <button type="submit">Finalize Playlist</button>
-</form>
-
-
-</form>
+        <button type="submit">Add Selected Songs</button>
+    </form>
 </body>
 </html>
