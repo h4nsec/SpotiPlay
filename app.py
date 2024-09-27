@@ -32,6 +32,7 @@ def callback():
     session['token_info'] = token_info
     return redirect('/create_playlist')
 
+# View for creating a new playlist
 @app.route('/create_playlist', methods=['GET', 'POST'])
 def create_playlist_view():
     token_info = session.get('token_info', None)
@@ -55,32 +56,54 @@ def create_playlist_view():
             for song in song_titles:
                 search_results[song] = sp.search(q=f"{song} artist:{artist_name}", type='track', limit=5)['tracks']['items']
 
-            return render_template('select_songs.html', search_results=search_results, playlist_name=playlist_name, setlist_url=setlist_url)
+            return render_template('select_songs.html', search_results=search_results, playlist_name=playlist_name)
 
         except Exception as e:
             print(f"Error during playlist creation: {e}")
             return f"An error occurred: {e}", 500
 
-    # Handle the GET request by rendering the form and fetching playlists
+    return render_template('create_playlist.html')
+
+# View for updating an existing playlist
+@app.route('/update_playlist', methods=['GET', 'POST'])
+def update_playlist_view():
+    token_info = session.get('token_info', None)
+    if not token_info:
+        return redirect('/login')
+
+    sp = Spotify(auth=token_info['access_token'])
+
+    if request.method == 'POST':
+        playlist_id = request.form['playlist_id']
+        setlist_url = request.form['setlist_url_update']
+
+        try:
+            artist_name, song_titles = get_setlist_songs_and_artist(setlist_url)
+
+            if not song_titles:
+                return "No songs found in the setlist.", 400
+
+            # Search for Spotify tracks
+            search_results = {}
+            for song in song_titles:
+                search_results[song] = sp.search(q=f"{song} artist:{artist_name}", type='track', limit=5)['tracks']['items']
+
+            return render_template('select_songs.html', search_results=search_results, playlist_id=playlist_id)
+
+        except Exception as e:
+            print(f"Error during playlist update: {e}")
+            return f"An error occurred: {e}", 500
+
+    # Fetch existing playlists
     try:
-        playlists = sp.current_user_playlists(limit=10)['items']  # Fetch user's playlists
-        print(playlists)  # Check if this prints playlists
+        playlists = sp.current_user_playlists(limit=10)['items']
     except Exception as e:
         print(f"Error fetching playlists: {e}")
         playlists = []
     
-    return render_template('create_playlist.html', playlists=playlists)
+    return render_template('update_playlist.html', playlists=playlists)
 
-
-
-# Function to clean song titles by removing extra spaces, unwanted text, and anything in parentheses
-def clean_song_title(title):
-    # Remove anything within parentheses and parentheses themselves
-    title = re.sub(r'\([^)]*\)', '', title)
-    # Remove "Play Video" and extra spaces
-    return ' '.join(title.replace('Play Video', '').split()).strip()
-
-
+# Finalize playlist creation
 @app.route('/finalize_playlist', methods=['POST'])
 def finalize_playlist():
     token_info = session.get('token_info', None)
@@ -89,70 +112,30 @@ def finalize_playlist():
 
     sp = Spotify(auth=token_info['access_token'])
 
-    # Check if it's an update or a new playlist
-    is_update = request.form.get('is_update')
+    # Determine if it's an update or a new playlist creation
+    playlist_id = request.form.get('playlist_id', None)
+    playlist_name = request.form.get('playlist_name', None)
+    selected_track_uris = request.form.getlist('selected_tracks')
 
-    if is_update == 'true':
-        # Update existing playlist
-        playlist_id = request.form['playlist_id']
+    if not selected_track_uris:
+        return "No tracks were selected."
+
+    # If updating an existing playlist
+    if playlist_id:
+        sp.playlist_add_items(playlist_id, selected_track_uris)
+        return f"Playlist updated with selected songs!"
+    # If creating a new playlist
     else:
-        # Create new playlist
-        playlist_name = request.form.get('playlist_name')
-        if not playlist_name:
-            return "Playlist name is required for new playlists", 400
-
         user_id = sp.current_user()['id']
         playlist = sp.user_playlist_create(user_id, name=playlist_name, public=True)
-        playlist_id = playlist['id']
+        sp.playlist_add_items(playlist['id'], selected_track_uris)
+        return f"New playlist '{playlist_name}' created with selected songs!"
 
-    # Get selected tracks
-    selected_track_uris = request.form.getlist('selected_tracks')
-    
-    if selected_track_uris:
-        sp.playlist_add_items(playlist_id, selected_track_uris)
-        if is_update == 'true':
-            return f"Playlist updated with selected songs!"
-        else:
-            return f"Playlist '{playlist_name}' created with selected songs!"
-    else:
-        return "No tracks were selected to add to the playlist."
+# Helper functions to clean up song titles and fetch song details from Setlist.fm
+def clean_song_title(title):
+    title = re.sub(r'\([^)]*\)', '', title)
+    return ' '.join(title.replace('Play Video', '').split()).strip()
 
-
-
-@app.route('/update_playlist', methods=['POST'])
-def update_playlist():
-    token_info = session.get('token_info', None)
-    if not token_info:
-        return redirect('/login')
-
-    sp = Spotify(auth=token_info['access_token'])
-    playlist_id = request.form['playlist_id']
-    setlist_url = request.form['setlist_url']
-
-    print(f"Updating Playlist ID: {playlist_id}, Setlist URL: {setlist_url}")  # Debugging
-
-    try:
-        artist_name, song_titles = get_setlist_songs_and_artist(setlist_url)
-
-        if not song_titles:
-            return "No songs found in the setlist.", 400
-
-        search_results = {}
-        for song in song_titles:
-            search_results[song] = sp.search(q=f"{song} artist:{artist_name}", type='track', limit=5)['tracks']['items']
-
-        return render_template('select_songs.html', search_results=search_results, playlist_id=playlist_id)
-
-    except Exception as e:
-        print(f"Error during playlist update: {e}")
-        return f"An error occurred: {e}", 500
-
-
-
-
-
-
-# Helper function to scrape Setlist.fm and clean song titles
 def get_setlist_songs_and_artist(url):
     response = requests.get(url)
     soup = BeautifulSoup(response.content, 'html.parser')
@@ -161,19 +144,6 @@ def get_setlist_songs_and_artist(url):
     song_titles = [clean_song_title(song) for song in raw_song_titles]
     return artist_name, song_titles
 
-# Function to search for songs on Spotify and return track URIs
-def search_spotify_tracks(sp, song_titles, artist_name):
-    track_uris = []
-    for song in song_titles:
-        query = f"{song} artist:{artist_name}"
-        print(f"Searching for: {query}")  # Debugging search query
-        results = sp.search(q=query, type='track', limit=5)  # Searching for up to 5 matches
-        if results['tracks']['items']:
-            track_uris.append(results['tracks']['items'][0]['uri'])
-        else:
-            print(f"No match found for {song} by {artist_name}")
-    return track_uris
-
 @app.before_request
 def refresh_token():
     token_info = session.get('token_info', None)
@@ -181,7 +151,6 @@ def refresh_token():
         if sp_oauth.is_token_expired(token_info):
             token_info = sp_oauth.refresh_access_token(token_info['refresh_token'])
             session['token_info'] = token_info
-
 
 if __name__ == '__main__':
     app.run(debug=True)
